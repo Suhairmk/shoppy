@@ -191,10 +191,9 @@ class _RegisterState extends State<Register> {
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.grey,
                           child: TextFormField(
-                            
                             controller: registerconformpass,
                             obscureText: conformvisible,
-                            
+
                             decoration: InputDecoration(
                                 hintText: 'Conform password',
                                 hintStyle:
@@ -223,7 +222,7 @@ class _RegisterState extends State<Register> {
                             // onChanged: (value) {
                             //   if (registerpassWord.text !=
                             //       registerconformpass.text) {
-                                
+
                             //     setState(() {
                             //       conformpass = 'password not match';
                             //     });
@@ -265,7 +264,12 @@ class _RegisterState extends State<Register> {
                                     });
                                     alertDialog(
                                         context, "Registration Success");
-           Navigator.push(context,MaterialPageRoute(builder: (context)=>LoginScreen()));
+                                        _auth.currentUser?.sendEmailVerification();
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                LoginScreen()));
                                     // Navigate to next screen or perform required action
                                   } else {
                                     alertDialog(context,
@@ -276,6 +280,7 @@ class _RegisterState extends State<Register> {
                                   alertDialog(context, "Registration failed");
                                 }
                                 clearTextFields();
+                                
                               },
                               label: const Text('SUBMIT')),
                         ),

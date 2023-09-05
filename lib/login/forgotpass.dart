@@ -1,13 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ForgortPass extends StatefulWidget {
-  const ForgortPass({super.key});
+  const ForgortPass({Key? key}) : super(key: key);
 
   @override
   State<ForgortPass> createState() => _ForgortPassState();
 }
 
 class _ForgortPassState extends State<ForgortPass> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _forgotEmail = TextEditingController();
+  bool _emailSent = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +34,6 @@ class _ForgortPassState extends State<ForgortPass> {
                   height: 20,
                 ),
                 Container(
-                  //   color: Colors.orange,
                   decoration: BoxDecoration(
                       color: Colors.black12,
                       borderRadius: BorderRadius.circular(30)),
@@ -38,18 +42,28 @@ class _ForgortPassState extends State<ForgortPass> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        SizedBox(height: 10,),
-                        Row(mainAxisAlignment: MainAxisAlignment.center,
-                          children: [Container(height: 60,width: 60,
-                            child: Image.asset('assets/images/padlock.png'))],),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              height: 60,
+                              width: 60,
+                              child: Image.asset('assets/images/padlock.png'),
+                            ),
+                          ],
+                        ),
                         const Padding(
                           padding: EdgeInsets.all(10),
                           child: Text(
                             'Forgot Password',
                             style: TextStyle(
-                                fontSize: 28,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
+                              fontSize: 28,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         const SizedBox(
@@ -61,6 +75,7 @@ class _ForgortPassState extends State<ForgortPass> {
                           borderRadius: BorderRadius.circular(20),
                           color: Colors.grey,
                           child: TextFormField(
+                            controller: _forgotEmail,
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
                               hintText: 'enter E-mail here',
@@ -76,7 +91,7 @@ class _ForgortPassState extends State<ForgortPass> {
                             ),
                           ),
                         ),
-                         const SizedBox(
+                        const SizedBox(
                           height: 23,
                         ),
                         Container(
@@ -87,11 +102,44 @@ class _ForgortPassState extends State<ForgortPass> {
                             color: Colors.blue,
                           ),
                           child: FloatingActionButton.extended(
-                              onPressed: () {}, label: const Text('Forgot Password')),
+                            onPressed: () async {
+                              try {
+                                await _auth.sendPasswordResetEmail(
+                                  email: _forgotEmail.text,
+                                );
+
+                                // Email sent successfully
+                                setState(() {
+                                  _emailSent = true;
+                                });
+                                _forgotEmail.clear();
+
+                                // Show a Snackbar message to inform the user
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text(
+                                        'Password reset email sent.'),
+                                  ),
+                                );
+                              } catch (e) {
+                                print('error $e');
+                              }
+                            },
+                            label: const Text('Send Link'),
+                          ),
                         ),
-                         const SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
+                        // Show a message if the email was sent
+                        if (_emailSent)
+                          const Text(
+                            'Password reset email has been sent.',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                       ],
                     ),
                   ),
