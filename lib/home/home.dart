@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:myapp/cart/cartFrame.dart';
 import 'package:myapp/home/account.dart';
@@ -18,6 +21,8 @@ class Homescreen extends StatefulWidget {
   @override
   State<Homescreen> createState() => _HomescreenState();
 }
+String? emailf ;
+    String? namef ;
 
 class _HomescreenState extends State<Homescreen>
     with SingleTickerProviderStateMixin {
@@ -39,7 +44,6 @@ class _HomescreenState extends State<Homescreen>
     tabController = TabController(length: 10, vsync: this);
     final provider = Provider.of<AppProvider>(context, listen: false);
     provider.getProductDetails();
-    
   }
 
   @override
@@ -62,6 +66,41 @@ class _HomescreenState extends State<Homescreen>
     if (currentindex == 2) {
       setState(() {
         status = false;
+      });
+    }
+
+
+ 
+
+    
+    User? user = FirebaseAuth.instance.currentUser;
+  
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          // Document exists in Firestore
+         
+          
+          final email = documentSnapshot['email'];
+          final name = documentSnapshot['displayName'];
+
+       
+             setState(() {
+            emailf = email;
+            namef = name;
+          });
+         
+
+          
+        
+        } else {
+          // Document does not exist
+          print('Document does not exist');
+        }
       });
     }
 
@@ -105,7 +144,7 @@ class _HomescreenState extends State<Homescreen>
                 label: Text(
                   num.toString(),
                 ),
-                child:  Icon(Icons.shopping_cart),
+                child: Icon(Icons.shopping_cart),
                 isLabelVisible: status,
               ),
               label: 'My Cart'),
@@ -181,7 +220,7 @@ class _HomescreenState extends State<Homescreen>
                                   radius: 40,
                                   backgroundColor: Colors.white,
                                 ),
-                                const Padding(
+                                Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
@@ -190,14 +229,15 @@ class _HomescreenState extends State<Homescreen>
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'name',
+                                          //----------------------------
+                                          namef ??'',
                                           style: TextStyle(
                                               fontSize: 30,
                                               fontWeight: FontWeight.w800,
                                               color:
                                                   Color.fromARGB(214, 0, 0, 0)),
                                         ),
-                                        Text('abdffv@gmail.com')
+                                        Text(emailf.toString())
                                       ],
                                     ),
                                   ),
@@ -339,10 +379,11 @@ class _HomescreenState extends State<Homescreen>
                                 ),
                                 SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height - 642,
+                                      MediaQuery.of(context).size.height - 742,
                                 ),
                                 InkWell(
                                   onTap: () {
+                                    FirebaseAuth.instance.signOut();
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -387,7 +428,7 @@ class _HomescreenState extends State<Homescreen>
   }
 }
 
- Widget buildHome(
+Widget buildHome(
   BuildContext context,
   TabController tabController,
   index,
@@ -413,6 +454,7 @@ class _HomescreenState extends State<Homescreen>
 
       return false; // Prevent app from closing
     } else {
+      SystemNavigator.pop();
       return true; // Allow app to close
     }
   }

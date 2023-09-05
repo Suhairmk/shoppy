@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:myapp/order/payment.dart';
@@ -11,6 +13,10 @@ class BuildSummary extends StatefulWidget {
   @override
   State<BuildSummary> createState() => _BuildSummaryState();
 }
+
+String? username;
+String? useremail;
+String? userphone;
 
 class _BuildSummaryState extends State<BuildSummary> {
   double calculateTotalPrice() {
@@ -26,6 +32,34 @@ class _BuildSummaryState extends State<BuildSummary> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context, listen: false);
     final total = '\$${calculateTotalPrice()}';
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          // Document exists in Firestore
+
+          final phoneNumber = documentSnapshot['phoneNumber'];
+          final email = documentSnapshot['email'];
+          final name = documentSnapshot['displayName'];
+
+          setState(() {
+            useremail = email;
+            username = name;
+            userphone = phoneNumber;
+          });
+        } else {
+          // Document does not exist
+          print('Document does not exist');
+        }
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Colors.orange,
@@ -68,7 +102,7 @@ class _BuildSummaryState extends State<BuildSummary> {
                                     padding: const EdgeInsets.only(
                                         bottom: 5, left: 7),
                                     child: Text(
-                                      'name..',
+                                      username??'',
                                       style: TextStyle(
                                         fontSize: 20,
                                       ),
@@ -77,7 +111,8 @@ class _BuildSummaryState extends State<BuildSummary> {
                                   Padding(
                                     padding: const EdgeInsets.only(left: 6),
                                     child: Text(
-                                        'address \n  pin......\n.dis.....'),
+                                        'address \n  pin......\n.dis.....\n phone: $userphone'),
+                                        
                                   ),
                                 ],
                               ),
@@ -176,7 +211,7 @@ class _BuildSummaryState extends State<BuildSummary> {
                             },
                           ),
                         ),
-                         Padding(
+                        Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Column(
                             children: [
@@ -196,10 +231,7 @@ class _BuildSummaryState extends State<BuildSummary> {
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Price(1 item)'),
-                                  Text(total)
-                                ],
+                                children: [Text('Price(1 item)'), Text(total)],
                               ),
                               SizedBox(
                                 height: 2,
@@ -281,17 +313,18 @@ class _BuildSummaryState extends State<BuildSummary> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-             Padding(
+            Padding(
               padding: EdgeInsets.only(left: 8),
               child: Text(
-                  '\$${calculateTotalPrice()}',
+                '\$${calculateTotalPrice()}',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => PaymentScreen(totalAmount: calculateTotalPrice())));
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) =>
+                        PaymentScreen(totalAmount: calculateTotalPrice())));
               },
               child: Container(
                 width: 130,

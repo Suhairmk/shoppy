@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/home/home.dart';
 
@@ -7,10 +9,42 @@ class AccountScreen extends StatefulWidget {
   @override
   State<AccountScreen> createState() => _AccountScreenState();
 }
-
+String? useremail;
+String? usermobile;
+String? username;
 class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
+
+ User? user = FirebaseAuth.instance.currentUser;
+  
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          // Document exists in Firestore
+         
+          final phoneNumber = documentSnapshot['phoneNumber'];
+          final email = documentSnapshot['email'];
+          final name = documentSnapshot['displayName'];
+
+        
+             setState(() {
+            useremail = email;
+            username = name;
+            usermobile=phoneNumber;
+          });
+            } else {
+          // Document does not exist
+          print('Document does not exist');
+        }
+      });
+    }
+       
+
     return Scaffold(
       backgroundColor: Colors.black12,
       appBar: AppBar(
@@ -44,7 +78,7 @@ class _AccountScreenState extends State<AccountScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            const Padding(
+             Padding(
               padding: EdgeInsets.only(left: 20, bottom: 40),
               child: Row(
                 children: [
@@ -58,13 +92,13 @@ class _AccountScreenState extends State<AccountScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'name',
+                          username ??'',
                           style: TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.w800,
                               color: Color.fromARGB(214, 0, 0, 0)),
                         ),
-                        Text('abdffv@gmail.com'),
+                        Text(useremail??''),
                         Text('address\nhousename\n pin')
                       ],
                     ),
